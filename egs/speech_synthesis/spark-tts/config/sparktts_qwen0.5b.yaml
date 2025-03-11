@@ -1,0 +1,146 @@
+#===========================|  Dataset Configuration |==========================#
+datasets:
+  _target_: sparkvox.models.base.dataloaders.multi_datasetdict_pl.MultiDictData
+  _recursive_: false
+  task:
+    - tts
+    - control_tts
+
+  collator:
+    _target_: sparkvox.models.speech_synthesis.base.dataloaders.data_collator_for_lm.DataCollatorForCausalLM
+    tokenizer_path: /aifs4su/xinshengwang/code/spark-tts/tokenizer/20250207-bicodec
+    mlm: false 
+    return_tensors: pt
+    max_length: 5200
+
+  dataloader:
+    batch_size: 2
+    val_batch_size: 8
+    num_workers: 8
+
+  data_paths:
+    train:
+      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_long
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_long
+      - /aifs4su/xinshengwang/data/voxbox/train_data/aishell-3
+      - /aifs4su/xinshengwang/data/voxbox/train_data/casia
+      - /aifs4su/xinshengwang/data/voxbox/train_data/cremad
+      - /aifs4su/xinshengwang/data/voxbox/train_data/dailytalk
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_en01
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_en02
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh01
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh02
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh03
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh04
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emns
+      - /aifs4su/xinshengwang/data/voxbox/train_data/emov-db
+      - /aifs4su/xinshengwang/data/voxbox/train_data/esd
+      - /aifs4su/xinshengwang/data/voxbox/train_data/expresso
+      - /aifs4su/xinshengwang/data/voxbox/train_data/gigaspeech01
+      - /aifs4su/xinshengwang/data/voxbox/train_data/gigaspeech02
+      - /aifs4su/xinshengwang/data/voxbox/train_data/gigaspeech03
+      - /aifs4su/xinshengwang/data/voxbox/train_data/hifi_tts
+      - /aifs4su/xinshengwang/data/voxbox/train_data/hq-conversations
+      - /aifs4su/xinshengwang/data/voxbox/train_data/iemocap
+      - /aifs4su/xinshengwang/data/voxbox/train_data/jlcorpus
+      - /aifs4su/xinshengwang/data/voxbox/train_data/librispeech
+      - /aifs4su/xinshengwang/data/voxbox/train_data/libritts_r
+      - /aifs4su/xinshengwang/data/voxbox/train_data/m3ed
+      - /aifs4su/xinshengwang/data/voxbox/train_data/magicdata
+      - /aifs4su/xinshengwang/data/voxbox/train_data/mead
+      - /aifs4su/xinshengwang/data/voxbox/train_data/meld
+      - /aifs4su/xinshengwang/data/voxbox/train_data/mer2023
+      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_english01
+      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_english02
+      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_english03
+      - /aifs4su/xinshengwang/data/voxbox/train_data/msp-podcast
+      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_c_en
+      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_c_zh
+      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_r_en
+      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_r_zh
+      - /aifs4su/xinshengwang/data/voxbox/train_data/ravdess
+      - /aifs4su/xinshengwang/data/voxbox/train_data/savee
+      - /aifs4su/xinshengwang/data/voxbox/train_data/tess
+      - /aifs4su/xinshengwang/data/voxbox/train_data/vctk
+      - /aifs4su/xinshengwang/data/voxbox/train_data/wenetspeech4tts01
+      - /aifs4su/xinshengwang/data/voxbox/train_data/wenetspeech4tts02
+      - /aifs4su/xinshengwang/data/voxbox/train_data/wenetspeech4tts03
+    validation: 
+      - /aifs4su/xinshengwang/data/voxbox/train_data/vctk
+
+model:
+  _target_: sparkvox.models.speech_synthesis.spark-tts.lightning_models.spark-tts.spark-tts
+  _recursive_: false
+  checkpoint: null    
+  ignore_keys: []
+  log_interval: 500
+  pad_id: -100
+
+  llm:
+    _target_: sparkvox.models.speech_synthesis.spark-tts.models.qwen.Qwen
+    model_name: /aifs4su/xinshengwang/model/public/huggingface/Qwen/Qwen2.5-0.5B-Instruct
+    token_num: 166000  # 165158
+    tokenizer_path: /aifs4su/xinshengwang/code/spark-tts/tokenizer/20250207-bicodec
+
+  # optimizer
+  grad_clip: 1.0
+  optimizer:
+    _target_: "torch.optim.AdamW"
+    lr: 0.001
+    weight_decay: 1.0e-6
+    betas: [0.9, 0.96]
+    eps: 1.0e-8
+  
+  lr_scheduler:
+    _target_: "sparkvox.utils.scheduler.WarmupAnnealSteps"
+    warmup_step: 5000
+    anneal_steps: [400000]
+    anneal_rate: 0.5
+    final_lr: 0.00001
+
+#===========================| Trainer Configuration |============================#
+train:
+  trainer:
+    devices: -1                           # GPU number, -1 indicates all available GPUs
+    num_nodes: 1
+    max_epochs: 100000
+    max_steps: 5000000       
+    val_check_interval: 4000              #  Set the int number for iteratons, or an float 0.2 to check 5 times per epoch.
+    log_every_n_steps: 500 
+    # num_sanity_val_steps: 2
+    accelerator: gpu
+    strategy: ddp
+    precision: bf16-mixed                         # [32, 16-mixed, bf16-mixed]
+    sync_batchnorm: true
+    enable_checkpointing: true
+    limit_val_batches: 50
+    accumulate_grad_batches: 12
+    strategy_params:
+      find_unused_parameters: false
+  
+  logger:
+    _target_: lightning.pytorch.loggers.TensorBoardLogger
+    save_dir: "tensorboard/"
+    name: "" # If it is the empty string then no per-experiment subdirectory is used.
+    version: null
+    log_graph: False
+    default_hp_metric: False
+    prefix: ""
+  
+  callbacks:
+    model_checkpoint:
+      # _target_: pytorch_lightning.callbacks.ModelCheckpoint
+      _target_: sparkvox.utils.lighting_model_check.CustomModelCheckpoint
+      dirpath: 
+      monitor: "agg_val_loss"  # used to determine which checkpoint will be saved
+      mode: "min"              # according to the monitor value, choices=['min', 'max']
+      save_top_k: -1            # tok-k best checkpoints will be saved based on monitor and mode
+      save_last: True          # always save the last checkpoint
+      verbose: true
+      every_n_train_steps: 5000
+      save_on_train_epoch_end: true
+      filename: "{epoch:04d}_{step:06d}_{agg_val_loss:.2f}"
+    
+    lr_monitor:
+      _target_: pytorch_lightning.callbacks.LearningRateMonitor
+      logging_interval: "step"

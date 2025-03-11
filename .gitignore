@@ -3,6 +3,21 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+dev/
+results/
+wandb/
+local/
+pretrained_models/
+lightning_logs/
+.ipynb_checkpoints/
+.vscode/
+*.pt
+*.npy
+*.png
+*.pdf
+*.err
+*.out
+*.wav
 # C extensions
 *.so
 
