@@ -180,7 +180,6 @@ class BaseModel(pl.LightningModule):
         )
 
         loss_dict= {k.split('/')[-1]: v for k, v in loss_dict.items()}
-
         if self.global_rank == 0:
             # Construct log message with losses and learning rates
             loss_msgs = ", ".join(

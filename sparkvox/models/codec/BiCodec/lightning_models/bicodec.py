@@ -20,6 +20,7 @@ BigCodec model with pytorch lightning
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from hydra.utils import instantiate
 from typing import Dict, Any
@@ -33,17 +34,18 @@ class BiCodec(WavCodec):
     """BiCodec model."""
 
     def __init__(self, config: DictConfig, **kwargs) -> None:
-        super().__init__(config)
-        pass
-
+        super().__init__(config,  **kwargs)
+        
     def forward(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """Forward pass."""
+        batch = self.update_batch(batch)
         return self.model["generator"](batch)
 
     def init_model(self) -> None:
         """Initialize the model."""
 
         self.model = nn.ModuleDict()
+        self.sslmodel = instantiate(self.config.sslmodel)
         generator = instantiate(self.config.generator)
         discriminator = instantiate(self.config.discriminator)
 
@@ -54,6 +56,24 @@ class BiCodec(WavCodec):
         """Initialize the loss functions."""
         self.mel_loss = MultiResolutionMelSpectrogramLoss(**self.config.mel_loss_params)
         self.mse_loss = nn.MSELoss()
+
+    def update_batch(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+        """update input with ssl"""
+        drop_frames = batch['drop_frames']
+        expected_num_frames = batch['expected_num_frames']
+
+        with torch.no_grad():
+            feat = self.sslmodel(batch['wav_in'], batch['wav'].device)
+            feat = feat[:,drop_frames:drop_frames+expected_num_frames]
+        
+        real_num_frames = feat.shape[1]
+
+        if real_num_frames < expected_num_frames:
+            num_padding = expected_num_frames - real_num_frames
+            feat = F.pad(feat, (0, 0, 0, num_padding), mode="constant", value=0)
+
+        batch['feat'] = feat
+        return batch
 
     def compute_generator_loss(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """Compute the generator loss."""
@@ -94,18 +114,20 @@ class BiCodec(WavCodec):
 if __name__ == "__main__":
     from sparkvox.utils.file import load_config
 
-    config = load_config("egs/codec/bicodec/config/bicodec.yaml")
+    config = load_config("egs/codec/bicodec/config/bicodec_24k.yaml")
     model_config = config["model"]
     model = BiCodec(model_config)
     # model = instantiate(model_config, model_config)
     batch = {
         "step": 1,
-        "wav": torch.randn(4, 1, int(16000 * 2.4)),
-        "feat": torch.randn(4, 1024, int(2.4 * 50)),
+        "drop_frames": 0,
+        'expected_num_frames': int(2.4*50), 
+        "wav": torch.randn(4, int(24000 * 2.4)),
+        "ref_wav": torch.randn(4, 1, int(24000 * 6)),
+        "wav_in": [torch.randn(int(16000 * 2.4)).numpy()]*4,
     }
 
     output = model(batch)
-
     gen_loss = model.compute_generator_loss(output)
     disc_loss = model.model["discriminator"].discriminative_loss(output)
     

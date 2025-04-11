@@ -19,6 +19,7 @@ Main script for training with pytorch_lightning
 
 
 import argparse
+import torch
 import pytorch_lightning as pl
 
 from pytorch_lightning import seed_everything
@@ -42,7 +43,6 @@ from sparkvox.utils.lightning_utils import (
     get_resume_path,
 )
 
-import torch
 
 torch.backends.cudnn.enabled = False
 torch.cuda.empty_cache()

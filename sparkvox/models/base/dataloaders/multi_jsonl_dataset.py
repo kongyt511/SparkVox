@@ -19,7 +19,7 @@ import os
 from typing import Dict, Any
 from pathlib import Path
 from typing import List
-from omegaconf import DictConfig
+from omegaconf import DictConfig, ListConfig
 from torch.utils.data import Dataset
 
 from sparkvox.utils.file import read_jsonl
@@ -72,9 +72,12 @@ class BaseDataset(Dataset):
         Returns:
             List[str]: List of jsonl file paths.
         """
-        if os.path.splitext(datalist_file)[-1] in [".jsonl", ".json", ".collect", ".emotion"]:
-            return [datalist_file]
+        if isinstance(datalist_file, ListConfig):
+            return datalist_file
 
+        elif os.path.splitext(datalist_file)[-1] in [".jsonl", ".json", ".collect", ".emotion"]:
+            return [datalist_file]
+            
         with open(datalist_file, "r") as f:
             return [line.strip() for line in f.readlines()]
 

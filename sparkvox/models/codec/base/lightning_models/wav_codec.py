@@ -17,8 +17,9 @@
 """
 Wav codec with pytorch lightning
 """
-
+import os
 import torch
+import soundfile
 
 from typing import List, Tuple
 from hydra.utils import instantiate
@@ -33,7 +34,7 @@ class WavCodec(BaseModel):
     """Base model for wav codec. All wav codec models should inherit from this class."""
 
     def __init__(self, config: DictConfig, **kwargs) -> None:
-        super().__init__(config)
+        super().__init__(config, **kwargs)
         # disable automatic optimization to manually control the optimizer and scheduler
         # the optimizer and scheduler are defined in the configure_optimizers method
         self.automatic_optimization = False
@@ -63,6 +64,9 @@ class WavCodec(BaseModel):
 
         if (batch_idx + 1) % self.config.log_interval == 0:
             self.custom_log(self.loss_dict, 'train')
+        
+        if (batch_idx + 1) % self.config.syn_interval == 0:
+            self.log_syn_wav(output, batch['index'])
         
         self.loss_dict = {}
  
@@ -200,3 +204,20 @@ class WavCodec(BaseModel):
 
     def update_batch_step(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         return batch
+
+    def log_syn_wav(self, outputs: Dict[str, torch.Tensor], indexs: List[str]):
+        """Save synthetic audio to local and log to tensorboard."""
+        step = self.global_step 
+        # if step % self.config["syn_interval"] != 0 or self.global_rank  != 0:
+        #     return
+
+        sample_rate = self.config["sample_rate"]
+        save_dir = os.path.join(self.config['log_dir'], f"val_results/{step}")
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir, exist_ok=True)
+
+        raw_wavs = outputs["audios"].squeeze(1).cpu().float().numpy()
+        rec_wavs = outputs["recons"].squeeze(1).detach().cpu().float().numpy()
+        for raw_wav, rec_wav, index in zip(raw_wavs, rec_wavs, indexs):
+            soundfile.write(f"{save_dir}/{index}_rec.wav", rec_wav, sample_rate)
+            soundfile.write(f"{save_dir}/{index}_raw.wav", raw_wav, sample_rate)

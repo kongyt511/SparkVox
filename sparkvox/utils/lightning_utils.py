@@ -41,6 +41,7 @@ def update_config(args: Namespace, config: DictConfig) -> DictConfig:
         config["train"]["trainer"]["accumulate_grad_batches"] = args.accumluate
     config["train"]["logger"]["save_dir"] = f"{args.log_dir}/logs"
     config["datasets"]["dataloader"]["num_workers"] = args.num_workers
+    config['model']['log_dir']=args.log_dir
 
     return config
 

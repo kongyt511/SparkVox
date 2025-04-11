@@ -3,8 +3,8 @@ datasets:
   _target_: sparkvox.models.base.dataloaders.base_datamodule_pl.BaseDataModule
   _recursive_: false
   jsonlfiles:
-    train: /home/xinshengwang/data/sparkvox/tmp/vctk/train.jsonl
-    val: /home/xinshengwang/data/sparkvox/tmp/vctk/test.jsonl
+    "train": "/aifs4su/xinshengwang/data/voxbox/speech/Cantonese/PhoenixTV_subset_and_mix/metadata.jsonl"
+    "val": "/aifs4su/xinshengwang/data/voxbox/speech/Cantonese/PhoenixTV_subset_and_mix/metadata.jsonl"
 
   highpass_cutoff_freq: 40
   sample_rate: 16000 
