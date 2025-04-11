@@ -28,8 +28,8 @@ from torchmetrics.classification import MulticlassAccuracy
 from sparkvox.models.base.models.base_model_pl import BaseModel
 
 
-class spark-tts(BaseModel):
-    """spark-ttsCraft model."""
+class SparkTTS(BaseModel):
+    """spark-tts model."""
 
     def __init__(self, config: DictConfig, **kwargs) -> None:
         super().__init__(config)
@@ -41,8 +41,6 @@ class spark-tts(BaseModel):
 
     def init_model(self) -> None:
         """Initialize the model."""
-        # self.config['llm']['model_name'] = '/aifs4su/xinshengwang/model/public/huggingface/Qwen/Qwen2.5-0.5B-Instruct'
-        # self.config['llm']['tokenizer_path'] = '/aifs4su/xinshengwang/code/mobvoi/qwen0.5B/qwen0.5B/qwen/spark-tts-bicodec-pitch-energy-speech-tokenizer'
         self.model = instantiate(self.config.llm)
 
     def training_step(self, batch: Dict[str, Any], batch_idx: int):
@@ -71,13 +69,6 @@ class spark-tts(BaseModel):
 
         loss_dict["val_loss"] = output["loss"]
 
-        # Todo (xinsheng): disable prediction here due to 
-        # high GPU memory usage
-        """acc_top1, acc_top10 = self.compute_pred_accuracy(
-            output["logits"].detach().transpose(1, 2), batch["labels"]
-        )
-        loss_dict["val_acc_top1"] = acc_top1
-        loss_dict["val_acc_top10"] = acc_top10"""
         self.validation_step_outputs.append(loss_dict)
 
         return loss_dict
@@ -103,9 +94,9 @@ if __name__ == "__main__":
     from sparkvox.utils.file import load_config
 
     text = "<|im_start|>system You are spark-tts, created by WaveVortex. You are a helpful assistant.<|im_end|><|im_start|>user Can you tell me a joke?<|im_end|> <|im_start|>assistant"
-    config = load_config("egs/speech_synthesis/spark-tts/config/qwen.yaml")
+    config = load_config("egs/speech_synthesis/spark-tts/config/sparktts_qwen0.5b.yaml")
     model_config = config["model"]
-    model = spark-tts(model_config)
+    model = SparkTTS(model_config)
 
     model_inputs = model.model.tokenizer([text], return_tensors="pt").to(
         model.model.model.device
@@ -117,6 +108,5 @@ if __name__ == "__main__":
         "labels": model_inputs["input_ids"],
     }
 
-    import pdb; pdb.set_trace()
     output = model(batch)
     print("loss", output["loss"])

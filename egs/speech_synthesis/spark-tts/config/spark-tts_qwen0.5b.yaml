@@ -8,20 +8,18 @@ datasets:
 
   collator:
     _target_: sparkvox.models.speech_synthesis.base.dataloaders.data_collator_for_lm.DataCollatorForCausalLM
-    tokenizer_path: /aifs4su/xinshengwang/code/spark-tts/tokenizer/20250207-bicodec
+    tokenizer_path: pretrained_models/spark-tts/tokenizer
     mlm: false 
     return_tensors: pt
-    max_length: 5200
-
+    max_length: 1500
+ 
   dataloader:
-    batch_size: 2
+    batch_size: 8
     val_batch_size: 8
     num_workers: 8
 
   data_paths:
     train:
-      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_long
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_long
       - /aifs4su/xinshengwang/data/voxbox/train_data/aishell-3
       - /aifs4su/xinshengwang/data/voxbox/train_data/casia
       - /aifs4su/xinshengwang/data/voxbox/train_data/cremad
@@ -69,7 +67,7 @@ datasets:
       - /aifs4su/xinshengwang/data/voxbox/train_data/vctk
 
 model:
-  _target_: sparkvox.models.speech_synthesis.spark-tts.lightning_models.spark-tts.spark-tts
+  _target_: sparkvox.models.speech_synthesis.sparktts.lightning_models.sparktts.SparkTTS
   _recursive_: false
   checkpoint: null    
   ignore_keys: []
@@ -77,10 +75,10 @@ model:
   pad_id: -100
 
   llm:
-    _target_: sparkvox.models.speech_synthesis.spark-tts.models.qwen.Qwen
-    model_name: /aifs4su/xinshengwang/model/public/huggingface/Qwen/Qwen2.5-0.5B-Instruct
+    _target_: sparkvox.models.speech_synthesis.sparktts.models.qwen.Qwen
+    model_name: pretrained_models/Qwen2.5-0.5B-Instruct
     token_num: 166000  # 165158
-    tokenizer_path: /aifs4su/xinshengwang/code/spark-tts/tokenizer/20250207-bicodec
+    tokenizer_path: pretrained_models/spark-tts/tokenizer
 
   # optimizer
   grad_clip: 1.0

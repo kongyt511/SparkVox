@@ -1,4 +1,4 @@
 audio_tokenizer:
   _target_: sparkvox.tools.tokenizer.audio_tokenizer.bicodec.bicodec_tokenizer.BiCodecTokenizer
-  config_path: "/aifs4su/xinshengwang/code/SparkAudio/SparkVox/egs/codec/bicodec/config/bicodec.yaml"
+  config_path: "/aifs4su/xinshengwang/code/SparkAudio/SparkVox/egs/speech_synthesis/spark-tts/config/audio_tokenizer/bicodec.yaml"
   ckpt_path: "/aifs4su/xinshengwang/code/VoxSphere/egs/recipes/librispeech/ssl2wav/results/20241202.ema.wav2vec.lmix.8192.spkFSQ.dualEncoder.fvq/ckpt/800000.pt"
