@@ -185,7 +185,7 @@ train:
     devices: -1                           # GPU number, -1 indicates all available GPUs
     num_nodes: 1
     max_epochs: 100000
-    max_steps: 500000       
+    max_steps: 2500000       
     val_check_interval: 200              #  Set the int number for iteratons, or an float 0.2 to check 5 times per epoch.
     log_every_n_steps: 100 
     # num_sanity_val_steps: 2
