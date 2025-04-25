@@ -69,11 +69,9 @@ class Discriminator(nn.Module):
 
         d_fake, d_real = self.forward(recons, signal)
 
-        adv_loss_list = []
+        adv_loss = 0
         for x_fake in d_fake:
-            adv_loss = self.gan_loss.gen_loss(x_fake[-1])
-            adv_loss_list.append(adv_loss)
-
+            adv_loss += self.gan_loss.gen_loss(x_fake[-1])
 
         feature_map_loss = 0
         
