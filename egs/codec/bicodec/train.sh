@@ -27,8 +27,8 @@ script_dir=$(dirname "$(realpath "$0")")
 root_dir=$(dirname $(dirname $(dirname "$script_dir")))
 
 # Set default parameters
-config="egs/codec/bicodec/config/bicodec_24k.yaml"
-log_dir="${script_dir}/results/bicodec_24k"
+config="egs/codec/bicodec/config/bicodec_24k_v3.yaml"
+log_dir="${script_dir}/results/bicodec_24k_test"
 nnodes=1
 nproc_per_node=1
 num_workers=8

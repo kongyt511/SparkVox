@@ -83,17 +83,18 @@ class BiCodec(WavCodec):
             "cluster_size": inputs["cluster_size"],
         }
         
+        loss_dict["mse_loss"] = self.mse_loss(inputs['pred_feat'], inputs['feat'])
+
         if inputs["with_speaker_loss"]:
             loss_dict["speaker_loss"] = self.mse_loss(inputs['x_vector'].detach(), inputs['d_vector'])
         
-        mel_loss = self.mel_loss(
+        loss_dict["mel_loss"] = self.mel_loss(
             inputs["recons"].squeeze(1), inputs["audios"].squeeze(1)
         )
 
         adv_loss_dict = self.model["discriminator"].adversarial_loss(
             inputs
         )
-        loss_dict["mel_loss"] = mel_loss
         loss_dict.update(adv_loss_dict)
 
         loss = sum(
@@ -114,8 +115,8 @@ class BiCodec(WavCodec):
 if __name__ == "__main__":
     from sparkvox.utils.file import load_config
 
-    config = load_config("egs/codec/bicodec/config/bicodec_24k.yaml")
-    model_config = config["model"]
+    config = load_config("egs/codec/bicodec/config/bicodec_24k_v3.yaml")
+    model_config = config["model"] 
     model = BiCodec(model_config)
     # model = instantiate(model_config, model_config)
     batch = {

@@ -1,9 +1,11 @@
 
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
 from math import exp
 from torch.autograd import Variable
+from torchaudio.transforms import MelSpectrogram
 
 
 def gaussian(window_size, sigma):

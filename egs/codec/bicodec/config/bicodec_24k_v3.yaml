@@ -137,6 +137,8 @@ model:
         window: "hann_window"
 
   loss_lambdas:
+    mse_loss: 1
+    ssim_loss: 1
     mel_loss: 15.0
     adv_loss: 1.0
     feature_map_loss: 2.0
