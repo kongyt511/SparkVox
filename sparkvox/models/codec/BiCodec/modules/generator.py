@@ -96,10 +96,11 @@ class Generator(nn.Module):
             d_vector_train_start=cfg["model"]["generator"]["d_vector_train_start"],
         )
 
-        state_dict = torch.load(ckpt_path, map_location="cpu")
+        state_dict_all = torch.load(ckpt_path, map_location="cpu")['state_dict']
 
+        state_dict = {k.replace('model.generator.', ''): v for k, v in state_dict_all.items() if 'model.generator.' in k}
         missing_keys, unexpected_keys = model.load_state_dict(
-            state_dict["generator"], strict=False
+            state_dict, strict=False
         )
 
         for key in missing_keys:
@@ -119,12 +120,12 @@ class Generator(nn.Module):
 
         x_vector, d_vector = self.speaker_encoder(mel.transpose(1, 2))
 
-        if batch["step"] > self.d_vector_train_start:
+        if self.training:
+            conditions = d_vector if inputs['step'] > self.d_vector_train_start else x_vector
+            with_speaker_loss = True if inputs['step'] > self.d_vector_train_start else False
+        else:
             conditions = d_vector
             with_speaker_loss = False
-        else:
-            conditions = x_vector
-            with_speaker_loss = True
 
         x = self.prenet(vq_outputs["z_q"], conditions)
         pred_feat = self.postnet(x)

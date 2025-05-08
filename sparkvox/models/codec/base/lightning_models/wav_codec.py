@@ -20,6 +20,7 @@ Wav codec with pytorch lightning
 import os
 import torch
 import soundfile
+import numpy as np
 
 from typing import List, Tuple
 from hydra.utils import instantiate
@@ -38,6 +39,7 @@ class WavCodec(BaseModel):
         # disable automatic optimization to manually control the optimizer and scheduler
         # the optimizer and scheduler are defined in the configure_optimizers method
         self.automatic_optimization = False
+        self.cached_demos = {}
 
     def init_model(self) -> None:
         """Initialize the model."""
@@ -64,9 +66,10 @@ class WavCodec(BaseModel):
 
         if (batch_idx + 1) % self.config.log_interval == 0:
             self.custom_log(self.loss_dict, 'train')
-        
-        if (batch_idx + 1) % self.config.syn_interval == 0:
-            self.log_syn_wav(output, batch['index'])
+
+        if self.global_step % self.config.syn_interval == 0 :
+            self.log_syn_wav(self.cached_demos)
+            self.cached_demos = {}
         
         self.loss_dict = {}
  
@@ -146,6 +149,8 @@ class WavCodec(BaseModel):
         loss_dict = self.add_prefix_to_keys(loss_dict, "val")
         self.validation_step_outputs.append(loss_dict)
 
+        self.cache_val_demos(output, batch['index'])
+
         return loss_dict
 
     @torch.inference_mode()
@@ -205,19 +210,28 @@ class WavCodec(BaseModel):
     def update_batch_step(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         return batch
 
-    def log_syn_wav(self, outputs: Dict[str, torch.Tensor], indexs: List[str]):
+
+    def cache_val_demos(self, outputs: Dict[str, torch.Tensor], indexs: List[str]):
+        """Cache validation demo audio."""
+
+        raw_wavs = outputs["audios"].squeeze(1).cpu().float().numpy()
+        rec_wavs = outputs["recons"].squeeze(1).detach().cpu().float().numpy()
+
+        for raw_wav, rec_wav, index in zip(raw_wavs, rec_wavs, indexs):
+            self.cached_demos[index] = (raw_wav, rec_wav)
+        
+    def log_syn_wav(self, cached_demos: Dict[str, Tuple[np.ndarray, np.ndarray]]):
         """Save synthetic audio to local and log to tensorboard."""
         step = self.global_step 
-        # if step % self.config["syn_interval"] != 0 or self.global_rank  != 0:
-        #     return
 
+        if len(cached_demos) == 0: 
+            return
+        
         sample_rate = self.config["sample_rate"]
         save_dir = os.path.join(self.config['log_dir'], f"val_results/{step}")
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
 
-        raw_wavs = outputs["audios"].squeeze(1).cpu().float().numpy()
-        rec_wavs = outputs["recons"].squeeze(1).detach().cpu().float().numpy()
-        for raw_wav, rec_wav, index in zip(raw_wavs, rec_wavs, indexs):
+        for index, (raw_wav, rec_wav) in cached_demos.items():
             soundfile.write(f"{save_dir}/{index}_rec.wav", rec_wav, sample_rate)
             soundfile.write(f"{save_dir}/{index}_raw.wav", raw_wav, sample_rate)

@@ -3,23 +3,22 @@ datasets:
   _target_: sparkvox.models.base.dataloaders.base_datamodule_pl.BaseDataModule
   _recursive_: false
   jsonlfiles:
-    "train":
+    train:
       - /aifs4su/xinshengwang/data/speech/32k/commonvoice_yue.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/dailytalk.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emilia_en.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emilia_zh.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emns.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/expresso.jsonl
-      - /aifs4su/xinshengwang/data/speech/32k/game_mhy_train.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/hifi_tts.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/PhoenixTV_subset_and_mix.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/vctk_train.jsonl
-    "val":
-      - /aifs4su/xinshengwang/data/speech/32k/game_mhy_val.jsonl
+    val:
       - /aifs4su/xinshengwang/data/speech/32k/vctk_val.jsonl
 
   highpass_cutoff_freq: 40
-  sample_rate: 24000 
+  sample_rate: 24000
+  sample_rate_for_ssl: 16000
   segment_duration: 2.4 # (s)
   max_val_duration: 12 # (s)
   latent_hop_length: 480
@@ -187,7 +186,7 @@ train:
     devices: -1                           # GPU number, -1 indicates all available GPUs
     num_nodes: 1
     max_epochs: 100000
-    max_steps: 2500000       
+    max_steps: 3500000       
     val_check_interval: 200              #  Set the int number for iteratons, or an float 0.2 to check 5 times per epoch.
     log_every_n_steps: 100 
     # num_sanity_val_steps: 2
