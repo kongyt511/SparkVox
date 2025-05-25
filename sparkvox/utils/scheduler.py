@@ -133,3 +133,31 @@ class WarmupCosineLRSchedule(LambdaLR):
             self.final_lr_ratio,
             0.5 * (1.0 + math.cos(math.pi * float(self.num_cycles) * 2.0 * progress)),
         )
+
+
+class ExponentialLRScheduler(LambdaLR):
+    """Exponential LR scheduler with a minimum learning rate cap."""
+
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        gamma: float,
+        min_lr: float = 1e-6,
+        last_epoch: int = -1,
+        verbose: bool = False,
+    ):
+        self.gamma = gamma
+        self.min_lr = min_lr
+        # Capture initial learning rates
+        self.init_lr = optimizer.param_groups[0]['lr']
+
+        super(ExponentialLRScheduler, self).__init__(
+            optimizer, self.lr_lambda, last_epoch=last_epoch, verbose=verbose
+        )
+
+    def lr_lambda(self, step: int):
+        return max(self.init_lr * self.gamma**step, self.min_lr) / self.init_lr
+
+
+
+
