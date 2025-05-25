@@ -4,24 +4,21 @@ datasets:
   _recursive_: false
   jsonlfiles:
     train:
-      - /aifs4su/xinshengwang/data/speech/32k/commonvoice_yue.jsonl
-      - /aifs4su/xinshengwang/data/speech/32k/dailytalk.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emilia_en.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emilia_zh.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emns.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/expresso.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/hifi_tts.jsonl
-      - /aifs4su/xinshengwang/data/speech/32k/PhoenixTV_subset_and_mix.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/vctk_train.jsonl
     val:
       - /aifs4su/xinshengwang/data/speech/32k/vctk_val.jsonl
 
   highpass_cutoff_freq: 40
-  sample_rate: 24000
-  sample_rate_for_ssl: 16000
+  sample_rate: 32000
+   sample_rate_for_ssl: 16000
   segment_duration: 2.4 # (s)
   max_val_duration: 12 # (s)
-  latent_hop_length: 480
+  latent_hop_length: 640
   ref_segment_duration: 6 # (s)
   additonal_duration_per_side: 1 # (s)
   volume_normalize: true 
@@ -41,7 +38,7 @@ model:
   ignore_keys: []
   log_interval: 100
   syn_interval: 2000
-  sample_rate: 24000
+  sample_rate: 32000
   additonal_duration_per_side: 1
 
   sslmodel:
@@ -53,7 +50,7 @@ model:
     _recursive_: True
 
     mel_params:
-      sample_rate: 24000
+      sample_rate: 32000
       n_fft: 1024
       win_length: 640
       hop_length: 320
@@ -74,8 +71,8 @@ model:
       _target_: sparkvox.models.codec.base.modules.wave_generator_dac.Decoder
       input_channel: 1024
       channels: 1536
-      rates: [8, 5, 4, 3]
-      kernel_sizes: [16, 11, 8, 7]
+      rates: [8, 5, 4, 4]
+      kernel_sizes: [16, 11, 8, 8]
 
     quantizer:
       _target_: sparkvox.models.codec.base.quantize.factorized_vector_quantize.FactorizedVectorQuantize
@@ -92,7 +89,7 @@ model:
       input_dim: 128
       out_dim: 1024
       latent_dim: 128
-      token_num: 64
+      token_num: 32
       fsq_levels: [4, 4, 4, 4, 4, 4]
       fsq_num_quantizers: 1
 
@@ -122,11 +119,11 @@ model:
     _target_: sparkvox.models.codec.BiCodec.modules.discriminator.Discriminator
     _recursive_: true
     clip_grad_val: 1.0
-    sample_rate: 24000
+    sample_rate: 32000
 
     wav_discriminator:
       _target_: sparkvox.models.codec.base.modules.wave_discriminator_dac.WaveDiscriminator
-      sample_rate: 24000
+      sample_rate: 32000
       periods: [2, 3, 5, 7, 11]
       bands: [[0.0, 0.1], [0.1, 0.25], [0.25, 0.5], [0.5, 0.75], [0.75, 1.0]]
       stft_params:
@@ -145,8 +142,8 @@ model:
     speaker_loss: 1.0
 
   mel_loss_params:
-    sample_rate: 24000
-    n_mels:  [5, 10, 20, 40, 80, 160, 320]
+    sample_rate: 32000
+    n_mels: [5, 10, 20, 40, 80, 160, 320]
     window_lengths: [32, 64, 128, 256, 512, 1024, 2048]
     mel_fmin: [0, 0, 0, 0, 0, 0, 0]
     mel_fmax: [null, null, null, null, null, null, null]

@@ -3,28 +3,24 @@ datasets:
   _target_: sparkvox.models.base.dataloaders.base_datamodule_pl.BaseDataModule
   _recursive_: false
   jsonlfiles:
-    "train":
-      - /aifs4su/xinshengwang/data/speech/32k/commonvoice_yue.jsonl
-      - /aifs4su/xinshengwang/data/speech/32k/dailytalk.jsonl
+    train:
       - /aifs4su/xinshengwang/data/speech/32k/emilia_en.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emilia_zh.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/emns.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/expresso.jsonl
-      - /aifs4su/xinshengwang/data/speech/32k/game_mhy_train.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/hifi_tts.jsonl
-      - /aifs4su/xinshengwang/data/speech/32k/PhoenixTV_subset_and_mix.jsonl
       - /aifs4su/xinshengwang/data/speech/32k/vctk_train.jsonl
-    "val":
-      - /aifs4su/xinshengwang/data/speech/32k/game_mhy_val.jsonl
+    val:
       - /aifs4su/xinshengwang/data/speech/32k/vctk_val.jsonl
 
   highpass_cutoff_freq: 40
   sample_rate: 16000 
+  sample_rate_for_ssl: 16000
   segment_duration: 2.4 # (s)
   max_val_duration: 12 # (s)
   latent_hop_length: 320
   ref_segment_duration: 6 # (s)
-  additonal_duration_per_side: 2 # (s)
+  additonal_duration_per_side: 1 # (s)
   volume_normalize: true 
 
   dataloader:
@@ -42,11 +38,11 @@ model:
   log_interval: 100
   syn_interval: 2000
   sample_rate: 16000
-  additonal_duration_per_side: 2
+  additonal_duration_per_side: 1
 
   sslmodel:
     _target_:  sparkvox.models.codec.BiCodec.modules.wav2vec.Wav2Vec
-    model_dir: 'pretrained_models/wav2vec2-large-xlsr-53'
+    model_dir: pretrained_models/wav2vec2-large-xlsr-53
 
   generator:
     _target_: sparkvox.models.codec.BiCodec.modules.generator.Generator
@@ -83,7 +79,7 @@ model:
       codebook_size: 8192
       codebook_dim: 8
       commitment: 0.25
-      codebook_loss_weight: 2.0
+      codebook_loss_weight: 4.0
       use_l2_normlize: True
       threshold_ema_dead_code: 0.2
     
@@ -136,9 +132,11 @@ model:
         window: "hann_window"
 
   loss_lambdas:
+    mse_loss: 1
+    ssim_loss: 1
     mel_loss: 15.0
     adv_loss: 1.0
-    feature_map_loss: 1.0
+    feature_map_loss: 2.0
     vq_loss: 1.0
     speaker_loss: 1.0
 
@@ -184,16 +182,16 @@ train:
     devices: -1                           # GPU number, -1 indicates all available GPUs
     num_nodes: 1
     max_epochs: 100000
-    max_steps: 2500000       
+    max_steps: 3500000       
     val_check_interval: 200              #  Set the int number for iteratons, or an float 0.2 to check 5 times per epoch.
     log_every_n_steps: 100 
     # num_sanity_val_steps: 2
     accelerator: gpu
     strategy: ddp
-    precision: 32                         # [32, 16-mixed]
+    precision: 32                         # [32, bf16-mixed ]
     sync_batchnorm: true
     enable_checkpointing: true
-    limit_val_batches: 10
+    limit_val_batches: 50
     accumulate_grad_batches: 1            # accumulate gradients is not support with manual optimization
     strategy_params:
       find_unused_parameters: true
@@ -211,13 +209,14 @@ train:
     model_checkpoint:
       _target_: pytorch_lightning.callbacks.ModelCheckpoint
       dirpath: "checkpoints/"
-      monitor: "agg_val_mel_loss"  # used to determine which checkpoint will be saved
+      # monitor: "agg_val_mel_loss"  # used to determine which checkpoint will be saved
+      monitor: null
       mode: "min"                  # according to the monitor value, choices=['min', 'max']
       save_top_k: 1                # tok-k best checkpoints will be saved based on monitor and mode
       save_last: True              # always save the last checkpoint
       verbose: true                # print checkpoint information
       every_n_train_steps: 5000    # save checkpoint every n steps
-      filename: "{epoch:04d}_{step:06d}_{val_acc:.2f}"
+      filename: "{epoch:04d}_{step:06d}"
     
     lr_monitor:
       _target_: pytorch_lightning.callbacks.LearningRateMonitor
