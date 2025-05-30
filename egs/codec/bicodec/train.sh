@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 # Example
-# CUDA_VISIBLE_DEVICES=1,2,3,4,5 bash train.sh --config egs/codec/bicodec/config/bicodec.yaml \
-#               --log_dir egs/codec/bicodec/results/bicodec_16k \
+# CUDA_VISIBLE_DEVICES=1,2,3,4,5 bash train.sh --config egs/codec/bicodec/config/bicodec.24k.yaml \
+#               --log_dir egs/codec/bicodec/results/bicodec.24k \
 #               --nproc_per_node 5
 
 # Get the absolute path of the script's directory
@@ -30,8 +30,7 @@ root_dir=$(dirname $(dirname $(dirname "$script_dir")))
 config="egs/codec/bicodec/config/bicodec.24k.yaml"
 log_dir="${script_dir}/results/bicodec.24k"
 nnodes=1
-nproc_per_node=1
-num_workers=8
+nproc_per_node=-1
 resume=0
 version=null
 port=10086
