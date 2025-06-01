@@ -22,14 +22,14 @@ script_dir=$(dirname "$(realpath "$0")")
 root_dir=$(dirname $(dirname $(dirname "$script_dir")))
 
 # Set default parameters
-default_log_dir="${script_dir}/results/bicodec_24k_v3/20250420_014312"
+default_log_dir="${script_dir}/results/bicodec.24k/20250420_014312"
 log_dir="${default_log_dir}"
 device=0
 
 jsonlpath="/aifs4su/xinshengwang/data/speech/vocoder/test/librispeech/test.jsonl"
 wav2vec_model='/aifs4su/xinshengwang/model/wav2vec2-large-xlsr-53'
-ckpt='egs/codec/bicodec/results/bicodec_24k_v3/20250420_014312/ckpt/epoch=0095_step=1105000.ckpt'
-step=1105000
+ckpt='egs/codec/bicodec/results/bicodec.24k/20250420_014312/ckpt/epoch=0010_step=110000.ckpt'
+step=110000
 save_dir="${log_dir}/infer/${step}"
 config="${log_dir}/config.yaml"
 
