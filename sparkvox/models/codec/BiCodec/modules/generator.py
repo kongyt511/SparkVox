@@ -121,8 +121,8 @@ class Generator(nn.Module):
         x_vector, d_vector = self.speaker_encoder(mel.transpose(1, 2))
 
         if self.training:
-            conditions = d_vector if inputs['step'] > self.d_vector_train_start else x_vector
-            with_speaker_loss = True if inputs['step'] > self.d_vector_train_start else False
+            conditions = d_vector if batch['step'] > self.d_vector_train_start else x_vector
+            with_speaker_loss = True if batch['step'] > self.d_vector_train_start else False
         else:
             conditions = d_vector
             with_speaker_loss = False
@@ -199,13 +199,13 @@ class Generator(nn.Module):
 
 # test
 if __name__ == "__main__":
-    config = load_config("egs/codec/bicodec/config/bicodec.yaml")
+    config = load_config("egs/codec/bicodec/config/bicodec.24k.yaml")
     model = hydra.utils.instantiate(config["model"]["generator"])
 
     duration = 0.96
-    x = torch.randn(20, 1, int(duration * 16000))
+    x = torch.randn(20, 1, int(duration * 24000))
     feat = torch.randn(20, int(duration * 50), 1024)
-    inputs = {"feat": feat, "wav": x, "ref_wav": x, "step": 100000}
+    inputs = {"feat": feat, "wav": x, "ref_wav": x, "step": 100000, "step": 20000}
     outputs = model(inputs)
     semantic_tokens, global_tokens = model.tokenize(inputs)
     wav_recon = model.detokenize(semantic_tokens, global_tokens)
@@ -213,35 +213,3 @@ if __name__ == "__main__":
         print("test successful")
     else:
         print("test failed")
-
-    # for infer
-    from sparkvox.utils.audio import load_audio
-
-    wav = load_audio(
-        "/aifs4su/mmdata/rawdata/speech/Game_Genshin/English/荒泷一斗/vo_SDEQ001_3_itto_09.wav",
-        sampling_rate=16000,
-        volume_normalize=True,
-    )
-    wav = torch.from_numpy(wav).float()
-    feat = torch.load(
-        "/aifs4su/xinshengwang/data/speech/vocoder/wav2vec/wav2vec_mix/0001423757.pt"
-    )
-    wav = wav.unsqueeze(0)
-    feat = feat.unsqueeze(0).float()
-    inputs = {"feat": feat, "wav": wav, "ref_wav": wav, "step": 100000}
-
-    model = Generator.load_from_checkpoint(
-        config_path="egs/codec/bicodec/config/bicodec.yaml",
-        ckpt_path="/aifs4su/xinshengwang/code/VoxSphere/egs/recipes/librispeech/ssl2wav/results/20241202.ema.wav2vec.lmix.8192.spkFSQ.dualEncoder.fvq/ckpt/450000.pt",
-        device="cpu",
-    )
-
-    model.eval()
-    model.remove_weight_norm()
-
-    semantic_tokens, global_tokens = model.tokenize(inputs)
-    wav_recon = model.detokenize(semantic_tokens, global_tokens)
-    import soundfile as sf
-
-    sf.write("local/wav_recon.wav", wav_recon.squeeze().detach().numpy(), 16000)
-    sf.write("local/wav.wav", inputs["wav"].squeeze().detach().numpy(), 16000)
