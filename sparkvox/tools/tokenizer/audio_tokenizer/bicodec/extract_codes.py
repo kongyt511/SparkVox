@@ -1,5 +1,4 @@
 import os
-import soundfile as sf
 from tqdm import tqdm
 import torch
 import torch.distributed as dist
@@ -10,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
 from sparkvox.utils.file import load_config
-from sparkvox.tools.tokenizer.audio_tokenizer.bicodec.bicodec_tokenizer import (
+from sparkvox.tools.tokenizer.audio_tokenizer.bicodec.audio_tokenizer import (
     BiCodecTokenizer as audio_tokenizer,
 )
 from sparkvox.tools.tokenizer.audio_tokenizer.bicodec.dataloader import (
@@ -40,10 +39,14 @@ def extract(rank, args):
     setup_process(rank, args.world_size)
     device = torch.device(f"cuda:{rank}")
     config = load_config(args.config_path)
-    model = audio_tokenizer(args.config_path, args.ckpt_path, device)
+    model = audio_tokenizer(
+                        args.config_path, 
+                        args.ckpt_path, 
+                        args.wav2vec_model,
+                        device)
     model = DDP(model, device_ids=[rank]) 
     config["datasets"]["jsonlfiles_for_extract"] = args.jsonlfile
-    dataset = TokenizerDataset(config["datasets"], mode="val", extract_feat=True)
+    dataset = TokenizerDataset(config["datasets"], mode="val", extract_feat=True, data_root=args.data_root)
     sampler = DistributedSampler(dataset, num_replicas=args.world_size, rank=rank)
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size, num_workers=8, collate_fn=dataset.collate_fn, sampler=sampler
@@ -74,7 +77,6 @@ def extract(rank, args):
             output_length = int(length / 320)
             global_token = global_tokens[i].detach().cpu().squeeze()
             semantic_token = semantic_tokens[i].detach().cpu().squeeze()[:output_length]
-            assert len(global_token) == 32
             token = torch.cat([global_token, semantic_token], dim=0)
             torch.save(token, os.path.join(save_dir, f"{indx}.pt"))
 
@@ -85,22 +87,32 @@ def main():
     parser.add_argument(
         "--jsonlfile",
         type=str,
-        default="/aifs4su/xinshengwang/data/speech/17_Librispeech_SLR12/LibriSpeech/test.jsonl",
+        default="egs/data/metadata/m3ed.jsonl",
+    )
+    parser.add_argument(
+        "--data_root",
+        type=str,
+        default="egs/data/audios",
     )
     parser.add_argument(
         "--config_path",
         type=str,
-        default="/aifs4su/xinshengwang/code/spark-tts/sparkvox/egs/codec/bicodec/config/bicodec.yaml",
+        default="egs/codec/bicodec/results/bicodec.24k/20250420_014312/config.yaml",
     )
     parser.add_argument(
         "--ckpt_path",
         type=str,
-        default="/aifs4su/xinshengwang/code/VoxSphere/egs/recipes/librispeech/ssl2wav/results/20241202.ema.wav2vec.lmix.8192.spkFSQ.dualEncoder.fvq/ckpt/800000.pt",
+        default="egs/codec/bicodec/results/bicodec.24k/20250420_014312/ckpt/epoch=0010_step=110000.ckpt",
+    )
+    parser.add_argument(
+        "--wav2vec_model",
+        type=str,
+        default="pretrained_models/wav2vec2-large-xlsr-53",
     )
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="/aifs4su/xinshengwang/data/spark-tts/bicodec/LibriSpeech",
+        default="local/bicodec/m3ed",
     )
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--world_size", type=int, default=torch.cuda.device_count())
@@ -111,7 +123,6 @@ def main():
         os.makedirs(args.save_dir, exist_ok=True)
 
     mp.spawn(extract, args=(args,), nprocs=args.world_size)
-    # extract(0, args)
 
 
 if __name__ == "__main__":

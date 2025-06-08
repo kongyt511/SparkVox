@@ -1,33 +1,29 @@
 import os
 import torch
 import soundfile as sf
-from sparkvox.tools.tokenizer.audio_tokenizer.bicodec.bicodec_tokenizer import (
-    BiCodecTokenizer,
-)
 
-device = torch.device("cuda:1")
+from sparkvox.utils.file import load_config
+from sparkvox.tools.tokenizer.audio_tokenizer.bicodec.audio_tokenizer import BiCodecTokenizer
+
+device = torch.device("cuda:0")
+config = load_config("egs/codec/bicodec/results/bicodec.24k/20250420_014312/config.yaml")
+
+global_token_num = config['model']['generator']['speaker_encoder']['token_num']
 
 tokenizer = BiCodecTokenizer(
-    config_path="/aifs4su/xinshengwang/code/spark-tts/sparkvox/egs/codec/bicodec/config/bicodec.yaml",
-    ckpt_path="/aifs4su/xinshengwang/code/VoxSphere/egs/recipes/librispeech/ssl2wav/results/20241202.ema.wav2vec.lmix.8192.spkFSQ.dualEncoder.fvq/ckpt/800000.pt",
-    device=device,
+        config_path="egs/codec/bicodec/results/bicodec.24k/20250420_014312/config.yaml",
+        ckpt_path="egs/codec/bicodec/results/bicodec.24k/20250420_014312/ckpt/epoch=0010_step=110000.ckpt",
+        wav2vec_model='pretrained_models/wav2vec2-large-xlsr-53',
+        device=device,
+    )
+
+tokens = torch.load(
+    "local/bicodec/m3ed/m3ed_Angry_0000000767.pt"
 )
 
+global_tokens = tokens[:global_token_num].unsqueeze(0).to(device)
+semantic_tokens = tokens[global_token_num:].unsqueeze(0).to(device)
 
-wav_path = '/aifs4su/xinshengwang/code/Inference/Spark-TTS/local/zhisheng_prompt.wav'
-basename = os.path.basename(wav_path)
-global_tokens, semantic_tokens = tokenizer.tokenize(wav_path)
+rec_wav = tokenizer.detokenize(global_tokens.unsqueeze(0), semantic_tokens)
 
-# tokens = torch.load(
-#     "/aifs4su/xinshengwang/data/speech/mobvoi/bicodec_16k/P100_data_biaobei_10000_v100_mel_split_1_000001.pt"
-# )
-
-# import pdb; pdb.set_trace()
-# global_tokens = tokens[:32].unsqueeze(0).to(device)
-# semantic_tokens = tokens[32:].unsqueeze(0).to(device)
-
-
-rec_wav = tokenizer.detokenize(global_tokens.squeeze(0), semantic_tokens)
-
-sf.write(f"/aifs4su/xinshengwang/code/Inference/Spark-TTS/local/rec_rec_org.wav", rec_wav, 16000)
-print(f'reconstructed wav saved to /aifs4su/xinshengwang/code/Inference/Spark-TTS/local/rec_rec_org.wav')
+sf.write(f"local/bicodec/check_code_rec.wav", rec_wav, config['datasets']['sample_rate'])

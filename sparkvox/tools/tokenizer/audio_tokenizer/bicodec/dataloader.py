@@ -22,6 +22,7 @@ import torch.nn.functional as F
 
 from typing import Dict, List, Any
 from omegaconf import DictConfig
+from pathlib import Path
 
 from sparkvox.utils.audio import load_audio
 from sparkvox.utils.audio import audio_highpass_filter
@@ -31,7 +32,7 @@ from sparkvox.models.base.dataloaders.multi_jsonl_dataset import BaseDataset
 class WavDataset(BaseDataset):
     """Dataset for wav and ref wav."""
 
-    def __init__(self, config: DictConfig, mode: str = "val", extract_feat: bool = False, **kwargs) -> None:
+    def __init__(self, config: DictConfig, mode: str = "val", extract_feat: bool = False, data_root: Path = None,  **kwargs) -> None:
         """
         Initialize the dataset with specific configuration and mode.
 
@@ -39,7 +40,7 @@ class WavDataset(BaseDataset):
             config (DictConfig): Dataset configuration as a dictionary.
             mode (str, optional): Specifies the mode, 'train' or 'val'. Defaults to 'train'.
         """
-        super().__init__(config, mode, extract_feat)
+        super().__init__(config, mode, extract_feat, data_root)
         pass
 
     def get_sample(self, meta: DictConfig) -> Dict[str, Any]:
@@ -51,24 +52,29 @@ class WavDataset(BaseDataset):
         else:
             wav_dir = meta["wav_path"]
 
-        try:
-            wav = load_audio(wav_dir, config["sample_rate"], volume_normalize=True)
+        if not os.path.isabs(wav_dir) and self.data_root is not None:
+            wav_dir = os.path.join(self.data_root, wav_dir)
 
+        try:
+            wav = load_audio(wav_dir, config["sample_rate_for_ssl"], volume_normalize=True)
+            ref_wav = load_audio(wav_dir, config["sample_rate"], volume_normalize=True)
+            
             # highpass filter
             if config["highpass_cutoff_freq"] != 0:
                 wav = audio_highpass_filter(
-                    wav, config["sample_rate"], config["highpass_cutoff_freq"]
+                    wav, config["sample_rate_for_ssl"], config["highpass_cutoff_freq"]
+                )
+                ref_wav = audio_highpass_filter(
+                    ref_wav, config["sample_rate"], config["highpass_cutoff_freq"]
                 )
 
-            wav_length = len(wav)
+            wav_length = len(ref_wav)
             ref_wav_length = config["ref_segment_duration"] * config["sample_rate"]
 
             # Repeat and truncate to handle insufficient length
             if wav_length < ref_wav_length:
                 repeat_times = 1 + ref_wav_length // wav_length
-                ref_wav = np.tile(wav, repeat_times)
-            else:
-                ref_wav = wav
+                ref_wav = np.tile(ref_wav, repeat_times)
 
             ref_wav = ref_wav[:ref_wav_length]
 

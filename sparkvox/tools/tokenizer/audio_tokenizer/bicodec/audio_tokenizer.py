@@ -1,4 +1,19 @@
-from omegaconf import DictConfig
+# Copyright (c) 2025 SparkAudio
+#               2025 Xinsheng Wang (w.xinshawn@gmail.com)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 from pathlib import Path
 
 import os
@@ -26,6 +41,7 @@ class BiCodecTokenizer(ABSTokenizer):
         self,
         config_path: Path = None,
         ckpt_path: Path = None,
+        wav2vec_model: Path = None,
         device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
         **kwargs
     ):
@@ -33,6 +49,7 @@ class BiCodecTokenizer(ABSTokenizer):
         """initialize the tokenizer"""
         config = load_config(config_path)
         self.config = config
+        self.ssl_path = wav2vec_model
         self.device = device
         self.init_model(ckpt_path, config_path)
 
@@ -42,10 +59,10 @@ class BiCodecTokenizer(ABSTokenizer):
             self.device
         )
         self.processor = Wav2Vec2FeatureExtractor.from_pretrained(
-            self.config["wav2vec_model"]
+            self.ssl_path
         )
         self.feature_extractor = Wav2Vec2Model.from_pretrained(
-            self.config["wav2vec_model"]
+            self.ssl_path
         ).to(self.device)
         self.feature_extractor.config.output_hidden_states = True
 
@@ -68,13 +85,19 @@ class BiCodecTokenizer(ABSTokenizer):
     def process_audio(self, wav_path: Path) -> Tuple[torch.Tensor, torch.Tensor]:
         """load auido and get reference audio from wav path"""
         cfg = self.config["datasets"]
-        wav = load_audio(
+        wav_ref = load_audio(
             wav_path,
             sampling_rate=cfg["sample_rate"],
             volume_normalize=cfg["volume_normalize"],
         )
 
-        wav_ref = self.get_ref_clip(wav)
+        wav = load_audio(
+            wav_path,
+            sampling_rate=cfg["sample_rate_for_ssl"],
+            volume_normalize=cfg["volume_normalize"],
+        )
+
+        wav_ref = self.get_ref_clip(wav_ref)
 
         wav_ref = torch.from_numpy(wav_ref).unsqueeze(0).float()
         return wav, wav_ref
@@ -138,9 +161,8 @@ class BiCodecTokenizer(ABSTokenizer):
         Returns:
             wav_rec: waveform. shape: (batch_size, seq_len) for batch or (seq_len,) for single
         """
-        global_tokens = global_tokens.unsqueeze(1)
         wav_rec = self.model.detokenize(semantic_tokens, global_tokens)
-        return wav_rec.detach().squeeze().cpu().numpy()
+        return wav_rec.detach().squeeze().squeeze().cpu().numpy()
 
 
 # test
@@ -151,12 +173,14 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tokenizer = BiCodecTokenizer(
-        config_path="egs/codec/bicodec/config/bicodec.yaml",
-        ckpt_path="/aifs4su/xinshengwang/code/VoxSphere/egs/recipes/librispeech/ssl2wav/results/20241202.ema.wav2vec.lmix.8192.spkFSQ.dualEncoder.fvq/ckpt/800000.pt",
+        config_path="egs/codec/bicodec/results/bicodec.24k/20250420_014312/config.yaml",
+        ckpt_path="egs/codec/bicodec/results/bicodec.24k/20250420_014312/ckpt/epoch=0010_step=110000.ckpt",
+        wav2vec_model='pretrained_models/wav2vec2-large-xlsr-53',
         device=device,
     )
-    wav_path = "local/wav.wav"
+    wav_path = "egs/data/audios/m3ed/m3ed_Angry_0000000764.wav"
 
     global_tokens, semantic_tokens = tokenizer.tokenize(wav_path)
+    import pdb; pdb.set_trace()
     wav_rec = tokenizer.detokenize(global_tokens, semantic_tokens)
-    sf.write("local/wav_rec.wav", wav_rec, 16000)
+    sf.write("local/wav_rec.wav", wav_rec, 24000)
