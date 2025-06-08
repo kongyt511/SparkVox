@@ -23,7 +23,6 @@ import numpy as np
 from tqdm import tqdm
 import soundfile as sf
 from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2Model
-import torchaudio.transforms as TT
 
 from sparkvox.utils.file import load_config, read_jsonl
 from sparkvox.utils.audio import load_audio
@@ -68,23 +67,6 @@ def inference_factory(cfg, args_dict):
     )
     model.remove_weight_norm()
     return model.to(args_dict['device'])
-
-
-def init_mel_transformer(config, device):
-    """Create MelSpectrogram transformer."""
-    cfg = config['model']['generator']['mel_params']
-    return TT.MelSpectrogram(
-        cfg["sample_rate"],
-        cfg["n_fft"],
-        cfg["win_length"],
-        cfg["hop_length"],
-        cfg["mel_fmin"],
-        cfg["mel_fmax"],
-        n_mels=cfg["num_mels"],
-        power=1,
-        norm="slaney",
-        mel_scale="slaney",
-    ).to(device)
 
 
 def get_ref_clip(cfg, wav):
@@ -132,7 +114,6 @@ def main(args_dict):
     if "config" in cfg.keys():
         cfg = cfg["config"]
 
-    mel_transformer = init_mel_transformer(cfg, args_dict["device"])
     processor = Wav2Vec2FeatureExtractor.from_pretrained(args_dict["wav2vec_model"])
     feature_extractor = Wav2Vec2Model.from_pretrained(args_dict["wav2vec_model"]).to(
         args_dict["device"]
@@ -157,7 +138,7 @@ def main(args_dict):
             wav_path = meta["wav_path"]
 
         wav_raw, wav_in, ref_wav = process_audio(wav_path, cfg)
-        mel = mel_transformer(ref_wav)
+
         batch = {
             "wav": torch.from_numpy(wav_raw),
             "ref_wav": ref_wav}

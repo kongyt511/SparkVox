@@ -35,7 +35,7 @@ class BaseDataset(Dataset):
         metadata (List[dict]): List of metadata dictionaries loaded from jsonl files.
     """
 
-    def __init__(self, config: DictConfig, mode: str = "train", extract_feat: bool = False, **kwargs) -> None:
+    def __init__(self, config: DictConfig, mode: str = "train", extract_feat: bool = False, data_root: Path = None, **kwargs) -> None:
         """
         Initialize the dataset with specific configuration and mode.
 
@@ -45,6 +45,7 @@ class BaseDataset(Dataset):
         """
         self.config = config
         self.mode = mode
+        self.data_root = data_root
         self.train = mode == "train" and not extract_feat
         if extract_feat:
             self.config["jsonlfiles"]["val"] = config["jsonlfiles_for_extract"]
