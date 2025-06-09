@@ -16,8 +16,8 @@
 # limitations under the License.
 #
 # Example
-# CUDA_VISIBLE_DEVICES=1,2,3,4,5 bash train.sh --config egs/speech_synthesis/spark-tts/config/sparktts_qwen0.5b.yaml \
-#               --log_dir egs/speech_synthesis/stylecraft/results/sparktts_qwen0.5b \
+# CUDA_VISIBLE_DEVICES=1,2,3,4,5 bash train.sh --config egs/speech_synthesis/spark-tts/config/spark-tts_qwen0.5b.yaml \
+#               --log_dir egs/speech_synthesis/spark-tts/results/sparktts_qwen0.5b \
 #               --nproc_per_node 5
 
 export LOGLEVEL=INFO
@@ -31,7 +31,7 @@ script_dir=$(dirname "$(realpath "$0")")
 root_dir=$(dirname $(dirname $(dirname "$script_dir")))
 
 # Set default parameters
-config="egs/speech_synthesis/spark-tts/config/sparktts_qwen0.5b.yaml"
+config="egs/speech_synthesis/spark-tts/config/spark-tts_qwen0.5b.yaml"
 log_dir="${script_dir}/results/sparktts_qwen0.5b"
 nnodes=1
 nproc_per_node=-1

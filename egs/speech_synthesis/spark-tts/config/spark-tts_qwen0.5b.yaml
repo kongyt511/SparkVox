@@ -20,51 +20,9 @@ datasets:
 
   data_paths:
     train:
-      - /aifs4su/xinshengwang/data/voxbox/train_data/aishell-3
-      - /aifs4su/xinshengwang/data/voxbox/train_data/casia
-      - /aifs4su/xinshengwang/data/voxbox/train_data/cremad
-      - /aifs4su/xinshengwang/data/voxbox/train_data/dailytalk
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_en01
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_en02
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh01
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh02
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh03
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emilia_zh04
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emns
-      - /aifs4su/xinshengwang/data/voxbox/train_data/emov-db
-      - /aifs4su/xinshengwang/data/voxbox/train_data/esd
-      - /aifs4su/xinshengwang/data/voxbox/train_data/expresso
-      - /aifs4su/xinshengwang/data/voxbox/train_data/gigaspeech01
-      - /aifs4su/xinshengwang/data/voxbox/train_data/gigaspeech02
-      - /aifs4su/xinshengwang/data/voxbox/train_data/gigaspeech03
-      - /aifs4su/xinshengwang/data/voxbox/train_data/hifi_tts
-      - /aifs4su/xinshengwang/data/voxbox/train_data/hq-conversations
-      - /aifs4su/xinshengwang/data/voxbox/train_data/iemocap
-      - /aifs4su/xinshengwang/data/voxbox/train_data/jlcorpus
-      - /aifs4su/xinshengwang/data/voxbox/train_data/librispeech
-      - /aifs4su/xinshengwang/data/voxbox/train_data/libritts_r
-      - /aifs4su/xinshengwang/data/voxbox/train_data/m3ed
-      - /aifs4su/xinshengwang/data/voxbox/train_data/magicdata
-      - /aifs4su/xinshengwang/data/voxbox/train_data/mead
-      - /aifs4su/xinshengwang/data/voxbox/train_data/meld
-      - /aifs4su/xinshengwang/data/voxbox/train_data/mer2023
-      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_english01
-      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_english02
-      - /aifs4su/xinshengwang/data/voxbox/train_data/mls_english03
-      - /aifs4su/xinshengwang/data/voxbox/train_data/msp-podcast
-      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_c_en
-      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_c_zh
-      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_r_en
-      - /aifs4su/xinshengwang/data/voxbox/train_data/ncssd_r_zh
-      - /aifs4su/xinshengwang/data/voxbox/train_data/ravdess
-      - /aifs4su/xinshengwang/data/voxbox/train_data/savee
-      - /aifs4su/xinshengwang/data/voxbox/train_data/tess
-      - /aifs4su/xinshengwang/data/voxbox/train_data/vctk
-      - /aifs4su/xinshengwang/data/voxbox/train_data/wenetspeech4tts01
-      - /aifs4su/xinshengwang/data/voxbox/train_data/wenetspeech4tts02
-      - /aifs4su/xinshengwang/data/voxbox/train_data/wenetspeech4tts03
+      - local/sparktts/train_data/m3ed
     validation: 
-      - /aifs4su/xinshengwang/data/voxbox/train_data/vctk
+      - local/sparktts/train_data/m3ed
 
 model:
   _target_: sparkvox.models.speech_synthesis.sparktts.lightning_models.sparktts.SparkTTS
@@ -103,7 +61,7 @@ train:
     num_nodes: 1
     max_epochs: 100000
     max_steps: 5000000       
-    val_check_interval: 4000              #  Set the int number for iteratons, or an float 0.2 to check 5 times per epoch.
+    val_check_interval: 1.0              #  Set the int number for iteratons, or an float 0.2 to check 5 times per epoch.
     log_every_n_steps: 500 
     # num_sanity_val_steps: 2
     accelerator: gpu

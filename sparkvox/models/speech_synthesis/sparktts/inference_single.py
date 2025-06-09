@@ -22,8 +22,8 @@ import soundfile
 from tqdm import tqdm
 
 from sparkvox.utils.file import load_config, read_jsonl
-from sparkvox.models.speech_synthesis.spark-tts.lightning_models.spark-tts import spark-tts
-from sparkvox.models.speech_synthesis.spark-tts.utils.token_parser import TASK_TOKEN_MAP
+from sparkvox.models.speech_synthesis.sparktts.lightning_models.sparktts import SparkTTS
+from sparkvox.models.speech_synthesis.sparktts.utils.token_parser import TASK_TOKEN_MAP
 
 def parse_args():
     # Create an ArgumentParser object
@@ -60,7 +60,7 @@ def parse_args():
 
 def inference_factory(cfg, args_dict):
     audio_tokenizer = hydra.utils.instantiate(cfg["audio_tokenizer"], device=args_dict['device'])
-    model = spark-tts.load_from_checkpoint(args_dict['ckpt'], map_location='cpu')
+    model = SparkTTS.load_from_checkpoint(args_dict['ckpt'], map_location='cpu')
     model.model.to(args_dict['device'])
     
     return audio_tokenizer, model
