@@ -62,3 +62,12 @@ The train.sh script accepts the following arguments:
 ```
 bash train.sh --config egs/codec/bicodec/config/bicodec.24k.yaml
 ```
+
+## Inference
+
+The script `egs/codec/bicodec/infer.sh` provides an example of how to use the trained model for inference. The  following arguments should be defined:
+
+- log_dir: log directory same to the training script
+- jsonlpath: jsonl file for inference with the same format as the training metadata
+- wav2vec_model: path to the wav2vec 2.0 model
+- ckpt: path to the checkpoint that to be used for inference

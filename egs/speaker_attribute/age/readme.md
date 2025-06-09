@@ -36,19 +36,9 @@ bash train.sh --config egs/speaker_attribute/age/config/mel_age_predictor.yaml \
 - `--log_dir`: Directory for saving training logs and checkpoints
 - `--nproc_per_node`: Number of GPUs to use for training
 
-## Data Preparation
-TBD
 
 ## Model Configurations
 Two example configurations are provided:
 - `config/wavlm_age_predictor.yaml`: For WavLM + LoRA model
 - `config/mel_age_predictor.yaml`: For Mel-spectrogram + ECAPA-TDNN model
 
-## Inference
-TBD
-
-## Performance
-| Model | Accuracy | Model Size |
-|-------|----------|------------|
-| WavLM + LoRA | TBD | TBD |
-| Mel + ECAPA-TDNN | TBD | TBD |
