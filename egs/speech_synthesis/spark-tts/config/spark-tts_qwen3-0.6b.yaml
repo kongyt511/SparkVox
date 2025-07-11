@@ -34,8 +34,8 @@ model:
 
   llm:
     _target_: sparkvox.models.speech_synthesis.sparktts.models.qwen.Qwen
-    model_name: pretrained_models/Qwen2.5-0.5B-Instruct
-    token_num: 166000  # 165158
+    model_name: pretrained_models/Qwen3-0.6B
+    token_num: 165162  # 165158
     tokenizer_path: pretrained_models/spark-tts/tokenizer
 
   # optimizer

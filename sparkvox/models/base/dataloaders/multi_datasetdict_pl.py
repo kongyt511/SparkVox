@@ -90,7 +90,7 @@ if __name__ == "__main__":
     from sparkvox.utils.file import load_config
 
     config = load_config(
-        "egs/speech_synthesis/spark-tts/config/sparktts_qwen0.5b.yaml"
+        "egs/speech_synthesis/spark-tts/config/sparktts_qwen3-0.6b.yaml"
     )
     dataset = hydra.utils.instantiate(config["datasets"], config["datasets"])
 

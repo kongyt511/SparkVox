@@ -94,7 +94,7 @@ if __name__ == "__main__":
     from sparkvox.utils.file import load_config
 
     text = "<|im_start|>system You are spark-tts, created by WaveVortex. You are a helpful assistant.<|im_end|><|im_start|>user Can you tell me a joke?<|im_end|> <|im_start|>assistant"
-    config = load_config("egs/speech_synthesis/spark-tts/config/sparktts_qwen0.5b.yaml")
+    config = load_config("egs/speech_synthesis/spark-tts/config/sparktts_qwen3-0.6b.yaml")
     model_config = config["model"]
     model = SparkTTS(model_config)
 

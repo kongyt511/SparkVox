@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os.path
 
 import torch
 import random
@@ -108,7 +108,7 @@ class BicodecDataset(BaseDataset):
             
         config = self.config
         index = meta["index"]
-        wav_dir = meta["wav_path"]
+        wav_dir = 'E:/repo/SparkVox/data/speech/audios/' + meta["wav_path"]
         sample_rate = config["sample_rate"]
         latent_hop_length = config["latent_hop_length"]
         segment_duration = config["segment_duration"]

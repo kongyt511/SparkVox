@@ -13,7 +13,7 @@ class Qwen(nn.Module):
 
     def __init__(
         self,
-        model_name: str = "Qwen/Qwen2.5-0.5B-Instruct",
+        model_name: str = "Qwen/Qwen3-0.6B",
         tokenizer_path: Path = None,
         token_num: int = None,
         infer: bool = False,
