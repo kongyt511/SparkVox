@@ -4,14 +4,14 @@ datasets:
   _recursive_: false
   jsonlfiles:
     train:
-      - E:/repo/SparkVox/data/speech/meta/emilia_en.jsonl
-      # - E:/repo/SparkVox/data/speech/meta/emilia_zh.jsonl
-      # - E:/repo/SparkVox/data/speech/meta/emns.jsonl
-      # - E:/repo/SparkVox/data/speech/meta/expresso.jsonl
-      # - E:/repo/SparkVox/data/speech/meta/hifi_tts.jsonl
-      # - E:/repo/SparkVox/data/speech/meta/vctk.jsonl
+      - /mnt/e/repo/SparkVox/data/speech/meta/emilia_en.jsonl
+      # - /mnt/e/repo/SparkVox/data/speech/meta/emilia_zh.jsonl
+      # - /mnt/e/repo/SparkVox/data/speech/meta/emns.jsonl
+      # - /mnt/e/repo/SparkVox/data/speech/meta/expresso.jsonl
+      # - /mnt/e/repo/SparkVox/data/speech/meta/hifi_tts.jsonl
+      # - /mnt/e/repo/SparkVox/data/speech/meta/vctk.jsonl
     val:
-      - E:/repo/SparkVox/data/speech/meta/tess.jsonl
+      - /mnt/e/repo/SparkVox/data/speech/meta/tess.jsonl
 
   highpass_cutoff_freq: 40
   sample_rate: 16000 
@@ -25,7 +25,7 @@ datasets:
 
   dataloader:
     _target_: sparkvox.models.codec.BiCodec.dataloaders.wav_XLSR_dataset.BicodecDataset
-    batch_size: 32
+    batch_size: 8
     val_batch_size: 1
     num_workers: 8
 
@@ -179,7 +179,7 @@ model:
 #===========================| Trainer Configuration |============================#
 train:
   trainer:
-    devices: -1                           # GPU number, -1 indicates all available GPUs
+    devices: 1                           # GPU number, -1 indicates all available GPUs
     num_nodes: 1
     max_epochs: 100000
     max_steps: 3500000       
@@ -188,7 +188,7 @@ train:
     # num_sanity_val_steps: 2
     accelerator: gpu
     strategy: ddp
-    precision: 32                         # [32, bf16-mixed ]
+    precision: bf16-mixed                         # [32, bf16-mixed ]
     sync_batchnorm: true
     enable_checkpointing: true
     limit_val_batches: 50

@@ -108,7 +108,7 @@ class BicodecDataset(BaseDataset):
             
         config = self.config
         index = meta["index"]
-        wav_dir = 'E:/repo/SparkVox/data/speech/audios/' + meta["wav_path"]
+        wav_dir = '/mnt/e/repo/SparkVox/data/speech/audios/' + meta["wav_path"]
         sample_rate = config["sample_rate"]
         latent_hop_length = config["latent_hop_length"]
         segment_duration = config["segment_duration"]
