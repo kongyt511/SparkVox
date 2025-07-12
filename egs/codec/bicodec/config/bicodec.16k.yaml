@@ -25,9 +25,9 @@ datasets:
 
   dataloader:
     _target_: sparkvox.models.codec.BiCodec.dataloaders.wav_XLSR_dataset.BicodecDataset
-    batch_size: 16
+    batch_size: 32
     val_batch_size: 1
-    num_workers: 0
+    num_workers: 8
 
 #===========================|  Model Configuration |============================#
 model:
@@ -179,7 +179,7 @@ model:
 #===========================| Trainer Configuration |============================#
 train:
   trainer:
-    devices: 1                           # GPU number, -1 indicates all available GPUs
+    devices: -1                           # GPU number, -1 indicates all available GPUs
     num_nodes: 1
     max_epochs: 100000
     max_steps: 3500000       
@@ -187,8 +187,8 @@ train:
     log_every_n_steps: 100 
     # num_sanity_val_steps: 2
     accelerator: gpu
-    strategy: auto
-    precision: bf16-mixed                         # [32, bf16-mixed ]
+    strategy: ddp
+    precision: 32                         # [32, bf16-mixed ]
     sync_batchnorm: true
     enable_checkpointing: true
     limit_val_batches: 50
