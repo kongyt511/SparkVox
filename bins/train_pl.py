@@ -61,7 +61,7 @@ def get_args():
 
     if args.resume not in ["0", 0]:
         assert (
-            args.version != args.date
+            args.version == args.date
         ), "if you want to resume training, you should specify a history version"
 
     args.log_dir = args.log_dir + "/" + args.version
