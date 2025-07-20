@@ -27,7 +27,7 @@ datasets:
     _target_: sparkvox.models.codec.BiCodec.dataloaders.wav_XLSR_dataset.BicodecDataset
     batch_size: 8
     val_batch_size: 1
-    num_workers: 8
+    num_workers: 0
 
 #===========================|  Model Configuration |============================#
 model:
